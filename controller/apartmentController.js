@@ -1,5 +1,4 @@
 const Apartment = require('../models/apartment')
-const Agent = require('../models/agent')
 const axios = require('axios');
 const { fetchNearByPlaces, getFilteredPlaces,
     getFilteredAndCategorizedPlaces } = require('../utility/mapApi')
@@ -61,17 +60,6 @@ exports.getApartmentNearbyPlaces = async (req, res) => {
     }
 }
 
-
-exports.getApartmentByAgent = async (req, res) => {
-    try {
-        const apartments = await Apartment.find({ agent: req.params.id });
-        res.status(200).send({ apartments })
-    } catch (error) {
-        console.error(error)
-        res.status(500).send({ error: "Error retrieving apartments for agent" })
-    }
-}
-
 exports.searchApartments = async (req, res) => {
     try {
         const { city, maxPrice, minPrice, bedrooms } = req.query;
@@ -117,8 +105,6 @@ exports.createApartment = async (req, res) => {
         if (response.data.results && response.data.results.length > 0) {
             const { lat, lng } = response.data.results[0].geometry.location;
 
-            const agent = await Agent.findById(req.user._id);
-
             // Create new apartment
             const newApartment = new Apartment({
                 type,
@@ -136,16 +122,9 @@ exports.createApartment = async (req, res) => {
                 bathrooms,
                 petPolicy,
                 amenities,
-                agent: agent._id,
             });
 
             const apartment = await newApartment.save();
-
-
-            agent.apartment.push(apartment._id);
-            await agent.save();
-
-            console.log(agent);
             res.status(201).json(apartment);
 
         } else {

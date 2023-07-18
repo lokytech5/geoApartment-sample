@@ -1,5 +1,5 @@
 const axios = require('axios');
-const redisClient = require('../redisClient');
+const redisClient = require('../db/redisClient');
 
 const fetchNearByPlaces = async (lat, lng, type) => {
     const key = `Places:${lat}:${lng}:${type}`;

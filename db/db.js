@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-module.exports = function(){
+module.exports = function () {
     mongoose.set('strictQuery', true);
     mongoose.connect('mongodb://127.0.0.1:27017/Apartment_db', { useNewUrlParser: true })
         .then(() => console.log('Connected to MongoDB'))

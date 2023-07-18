@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
-const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
-const redisClient = require('./redisClient')
-const Agent = require('./routes/agent');
+const redisClient = require('./db/redisClient')
+const Apartment = require('./routes/apartment');
+const db = require('./db/db');
 
 process.on('exit', () => {
     redisClient.quit();
@@ -17,14 +17,10 @@ process.on('SIGINT', () => {
 
 app.use(cookieParser());
 
-//*Connecting to MongoDB database server
-
-
-
 app.use(express.json());
-app.use('/api/agent', Agent);
+app.use('/api/apartment', Apartment);
 db();
 
-app.listen(3000, function () {
+app.listen(5000, function () {
     console.log("Server started on port 3000");
 });
