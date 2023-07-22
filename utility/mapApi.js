@@ -4,28 +4,32 @@ const redisClient = require('../db/redisClient');
 const fetchNearByPlaces = async (lat, lng, type) => {
     const key = `Places:${lat}:${lng}:${type}`;
 
+    // Try fetching the data from Redis
     try {
         let data = await redisClient.get(key);
 
         if (data !== null) {
-            // Data is cached in Redis, return this data
             return JSON.parse(data);
-        } else {
-            // Data is not cached in Redis, make the API call
-            const response = await axios.get(`https://maps.googleapis.com/maps/api/place/nearbysearch/json`, {
-                params: {
-                    location: `${lat},${lng}`, // pass the latitude and longitude of the apartment
-                    radius: 500, // define the radius to search within
-                    type: type, // pass the type of places you want to search for
-                    key: process.env.GOOGLE_PLACES_API_KEY,// replace this with your Places API key
-                }
-            })
-            console.log('Google Places API Response:', response.data);
-            // Cache the API response in Redis with an expiry of 1 hour
-            await redisClient.set(key, JSON.stringify(response.data.results), 'EX', 3600);
-
-            return response.data.results;
         }
+    } catch (error) {
+        console.error("Error while fetching from Redis: ", error);
+    }
+
+    try {
+        // Data is not cached in Redis, make the API call
+        const response = await axios.get(`https://maps.googleapis.com/maps/api/place/nearbysearch/json`, {
+            params: {
+                location: `${lat},${lng}`, // pass the latitude and longitude of the apartment
+                radius: 500,
+                type: type, 
+                key: process.env.GOOGLE_PLACES_API_KEY,
+            }
+        })
+        console.log('Google Places API Response:', response.data);
+        // Cache the API response in Redis with an expiry of 1 hour
+        await redisClient.set(key, JSON.stringify(response.data.results), 'EX', 3600);
+
+        return response.data.results;
     } catch (error) {
         console.error("Error while fetching nearby places: ", error);
         throw new Error(error.message);
